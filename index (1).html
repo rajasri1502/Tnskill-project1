@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farm Management System</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+body { background: #f1f8f3; color: #333; }
+header { background: #2e7d32; color: white; text-align: center; padding: 25px; }
+header h1 { margin-bottom: 8px; }
+nav { background: #1b5e20; padding: 12px; text-align: center; }
+nav button { background: white; color: #333; border: none; padding: 10px 18px; margin: 5px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+nav button:hover { background: #c8e6c9; }
+main { width: 90%; max-width: 1100px; margin: 30px auto; }
+.section { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.hidden { display: none; }
+h2 { color: #2e7d32; margin-bottom: 20px; }
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.card { background: #e8f5e9; padding: 25px; text-align: center; border-radius: 10px; border-left: 5px solid #2e7d32; }
+.card h3 { color: #2e7d32; margin-bottom: 10px; }
+.card p { font-size: 28px; font-weight: bold; }
+input, select { padding: 11px; margin: 5px; border: 1px solid #aaa; border-radius: 5px; }
+.addBtn { padding: 11px 18px; background: #2e7d32; color: white; border: none; border-radius: 5px; cursor: pointer; }
+.tableWrap { overflow-x: auto; }
+table { width: 100%; margin-top: 25px; border-collapse: collapse; }
+th { background: #2e7d32; color: white; }
+th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+.deleteBtn { background: #d32f2f; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; }
+footer { text-align: center; background: #1b5e20; color: white; padding: 15px; margin-top: 50px; }
+@media (max-width: 700px) {
+  .cards { grid-template-columns: 1fr 1fr; }
+  input, select { width: 100%; margin: 5px 0; }
+  .addBtn { width: 100%; margin-top: 5px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌾 Farm Management System</h1>
+  <p>Manage your farm activities easily</p>
+</header>
+
+<nav>
+  <button onclick="showSection('dashboard')">Dashboard</button>
+  <button onclick="showSection('farmers')">Farmers</button>
+  <button onclick="showSection('crops')">Crops</button>
+  <button onclick="showSection('livestock')">Livestock</button>
+  <button onclick="showSection('finance')">Finance</button>
+</nav>
+
+<main>
+
+<section id="dashboard" class="section">
+  <h2>Dashboard</h2>
+  <div class="cards">
+    <div class="card"><h3>Farmers</h3><p id="farmerCount">0</p></div>
+    <div class="card"><h3>Crops</h3><p id="cropCount">0</p></div>
+    <div class="card"><h3>Livestock</h3><p id="livestockCount">0</p></div>
+    <div class="card"><h3>Balance</h3><p id="balance">₹0</p></div>
+  </div>
+</section>
+
+<section id="farmers" class="section hidden">
+  <h2>Farmer Management</h2>
+  <input type="text" id="farmerName" placeholder="Farmer Name">
+  <input type="text" id="farmerPhone" placeholder="Phone Number">
+  <input type="text" id="farmerVillage" placeholder="Village">
+  <button class="addBtn" onclick="addFarmer()">Add Farmer</button>
+  <div class="tableWrap"><table>
+    <thead><tr><th>Name</th><th>Phone</th><th>Village</th><th>Action</th></tr></thead>
+    <tbody id="farmerTable"></tbody>
+  </table></div>
+</section>
+
+<section id="crops" class="section hidden">
+  <h2>Crop Management</h2>
+  <input type="text" id="cropName" placeholder="Crop Name">
+  <input type="text" id="cropArea" placeholder="Area (acres)">
+  <input type="text" id="cropSeason" placeholder="Season">
+  <button class="addBtn" onclick="addCrop()">Add Crop</button>
+  <div class="tableWrap"><table>
+    <thead><tr><th>Crop</th><th>Area</th><th>Season</th><th>Action</th></tr></thead>
+    <tbody id="cropTable"></tbody>
+  </table></div>
+</section>
+
+<section id="livestock" class="section hidden">
+  <h2>Livestock Management</h2>
+  <input type="text" id="animalType" placeholder="Animal Type">
+  <input type="number" id="animalCount" placeholder="Quantity">
+  <button class="addBtn" onclick="addLivestock()">Add Livestock</button>
+  <div class="tableWrap"><table>
+    <thead><tr><th>Animal</th><th>Quantity</th><th>Action</th></tr></thead>
+    <tbody id="livestockTable"></tbody>
+  </table></div>
+</section>
+
+<section id="finance" class="section hidden">
+  <h2>Farm Finance</h2>
+  <input type="text" id="financeDescription" placeholder="Description">
+  <input type="number" id="financeAmount" placeholder="Amount">
+  <select id="financeType">
+    <option value="income">Income</option>
+    <option value="expense">Expense</option>
+  </select>
+  <button class="addBtn" onclick="addFinance()">Add</button>
+  <div class="tableWrap"><table>
+    <thead><tr><th>Description</th><th>Amount</th><th>Type</th><th>Action</th></tr></thead>
+    <tbody id="financeTable"></tbody>
+  </table></div>
+</section>
+
+</main>
+
+<footer><p>© 2026 Farm Management System</p></footer>
+
+<script>
+let farmers = [], crops = [], livestock = [], finances = [];
+
+function showSection(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  updateDashboard();
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function val(id) { return document.getElementById(id).value; }
+function clr(ids) { ids.forEach(i => document.getElementById(i).value = ""); }
+
+// Farmers
+function addFarmer() {
+  const name = val("farmerName"), phone = val("farmerPhone"), village = val("farmerVillage");
+  if (!name || !phone || !village) { alert("Please fill all farmer details"); return; }
+  farmers.push({ name, phone, village });
+  clr(["farmerName", "farmerPhone", "farmerVillage"]);
+  displayFarmers(); updateDashboard();
+}
+function displayFarmers() {
+  document.getElementById("farmerTable").innerHTML = farmers.map((f, i) => `
+    <tr><td>${esc(f.name)}</td><td>${esc(f.phone)}</td><td>${esc(f.village)}</td>
+    <td><button class="deleteBtn" onclick="deleteFarmer(${i})">Delete</button></td></tr>`).join("");
+}
+function deleteFarmer(i) { farmers.splice(i, 1); displayFarmers(); updateDashboard(); }
+
+// Crops
+function addCrop() {
+  const name = val("cropName"), area = val("cropArea"), season = val("cropSeason");
+  if (!name || !area || !season) { alert("Please fill all crop details"); return; }
+  crops.push({ name, area, season });
+  clr(["cropName", "cropArea", "cropSeason"]);
+  displayCrops(); updateDashboard();
+}
+function displayCrops() {
+  document.getElementById("cropTable").innerHTML = crops.map((c, i) => `
+    <tr><td>${esc(c.name)}</td><td>${esc(c.area)} acres</td><td>${esc(c.season)}</td>
+    <td><button class="deleteBtn" onclick="deleteCrop(${i})">Delete</button></td></tr>`).join("");
+}
+function deleteCrop(i) { crops.splice(i, 1); displayCrops(); updateDashboard(); }
+
+// Livestock
+function addLivestock() {
+  const type = val("animalType"), count = val("animalCount");
+  if (!type || !count) { alert("Please enter livestock details"); return; }
+  livestock.push({ type, count });
+  clr(["animalType", "animalCount"]);
+  displayLivestock(); updateDashboard();
+}
+function displayLivestock() {
+  document.getElementById("livestockTable").innerHTML = livestock.map((a, i) => `
+    <tr><td>${esc(a.type)}</td><td>${esc(a.count)}</td>
+    <td><button class="deleteBtn" onclick="deleteLivestock(${i})">Delete</button></td></tr>`).join("");
+}
+function deleteLivestock(i) { livestock.splice(i, 1); displayLivestock(); updateDashboard(); }
+
+// Finance
+function addFinance() {
+  const description = val("financeDescription");
+  const amount = Number(val("financeAmount"));
+  const type = val("financeType");
+  if (!description || amount <= 0) { alert("Please enter valid finance details"); return; }
+  finances.push({ description, amount, type });
+  clr(["financeDescription", "financeAmount"]);
+  displayFinance(); updateDashboard();
+}
+function displayFinance() {
+  document.getElementById("financeTable").innerHTML = finances.map((f, i) => `
+    <tr><td>${esc(f.description)}</td><td>₹${f.amount}</td><td>${f.type}</td>
+    <td><button class="deleteBtn" onclick="deleteFinance(${i})">Delete</button></td></tr>`).join("");
+}
+function deleteFinance(i) { finances.splice(i, 1); displayFinance(); updateDashboard(); }
+
+// Dashboard
+function updateDashboard() {
+  document.getElementById("farmerCount").innerText = farmers.length;
+  document.getElementById("cropCount").innerText = crops.length;
+  document.getElementById("livestockCount").innerText = livestock.length;
+  let balance = 0;
+  finances.forEach(f => { balance += f.type === "income" ? f.amount : -f.amount; });
+  document.getElementById("balance").innerText = "₹" + balance;
+}
+
+showSection("dashboard");
+</script>
+</body>
+</html>
